@@ -63,7 +63,7 @@ div.stButton > button:hover{
 
 </style>
 """, unsafe_allow_html=True)
-)
+
 
 # ── Session state ────────────────────────────────────────────────────────────
 if "started" not in st.session_state:

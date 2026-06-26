@@ -142,6 +142,15 @@ if not st.session_state.started:
 # ═══════════════════════════════════════════════════════════════════════════
 #  MAIN APP
 # ═══════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
+# MAIN APP
+# ════════════════════════════════════════════════════════════════
+
+# Back Button
+if st.button("⬅ Back to Home"):
+    st.session_state.started = False
+    st.rerun()
+
 st.markdown("""
 <h1 class='main-title'>
 🌎 AIRVERSE AI
@@ -149,110 +158,231 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown(
-"<center><h4 style='color:#b8c1ec'>Predict Tomorrow's Air Before It Happens 🚀</h4></center>",
+"<center><h4 style='color:#b8c1ec;'>Predict Tomorrow's Air Before It Happens 🚀</h4></center>",
 unsafe_allow_html=True
 )
 
-# ── KPI Cards ────────────────────────────────────────────────────────────────
+# ---------------------------------------------------
+# LOAD DATA
+# ---------------------------------------------------
+
+with st.spinner("📡 Connecting to satellite network..."):
+    df, city_forecasts = load_all_city_data()
+
+# Safety check
+if df.empty:
+    st.error("Unable to fetch AQI data.")
+    st.stop()
+
+# ---------------------------------------------------
+# KPI CARDS
+# ---------------------------------------------------
+
 worst = df.loc[df["AQI"].idxmax()]
-best  = df.loc[df["AQI"].idxmin()]
-avg   = int(df["AQI"].mean())
+best = df.loc[df["AQI"].idxmin()]
+avg = int(df["AQI"].mean())
 
 c1, c2, c3 = st.columns(3)
-c1.metric("🔴 Most Polluted", worst["City"], f"AQI {worst['AQI']}")
-c2.metric("🟢 Cleanest City", best["City"],  f"AQI {best['AQI']}")
-c3.metric("📊 Avg AQI (All Cities)", str(avg), aqi_label(avg))
+
+c1.metric(
+    "🔥 Most Polluted",
+    worst["City"],
+    f"AQI {worst['AQI']}"
+)
+
+c2.metric(
+    "🌿 Cleanest",
+    best["City"],
+    f"AQI {best['AQI']}"
+)
+
+c3.metric(
+    "📊 Average AQI",
+    avg,
+    aqi_label(avg)
+)
 
 st.divider()
 
-# ── Table + Map ──────────────────────────────────────────────────────────────
-col_map, col_tbl = st.columns([6, 4])
+# ---------------------------------------------------
+# TABLE + MAP
+# ---------------------------------------------------
 
-with col_tbl:
-    st.subheader("📋 City AQI Table")
-    display = df[["City","AQI","Status","Day+1","Day+2","Day+3"]].copy()
+left, right = st.columns([4,6])
+
+with left:
+
+    st.subheader("🏙 Live City AQI")
+
+    table = df[
+        ["City","AQI","Status","Day+1","Day+2","Day+3"]
+    ].copy()
+
     st.dataframe(
-        display,
+        table,
         use_container_width=True,
         hide_index=True,
         column_config={
-            "AQI":   st.column_config.ProgressColumn("AQI",   min_value=0, max_value=500, format="%d"),
-            "Day+1": st.column_config.ProgressColumn("Day+1", min_value=0, max_value=500, format="%d"),
-            "Day+2": st.column_config.ProgressColumn("Day+2", min_value=0, max_value=500, format="%d"),
-            "Day+3": st.column_config.ProgressColumn("Day+3", min_value=0, max_value=500, format="%d"),
-        },
+            "AQI": st.column_config.ProgressColumn(
+                "AQI",
+                min_value=0,
+                max_value=500
+            ),
+            "Day+1": st.column_config.ProgressColumn(
+                "Day +1",
+                min_value=0,
+                max_value=500
+            ),
+            "Day+2": st.column_config.ProgressColumn(
+                "Day +2",
+                min_value=0,
+                max_value=500
+            ),
+            "Day+3": st.column_config.ProgressColumn(
+                "Day +3",
+                min_value=0,
+                max_value=500
+            ),
+        }
     )
 
-with col_map:
-    st.subheader("🗺️ AQI Map")
-    # Build map from cached data; pass df as JSON string for a hashable cache key
-    folium_map = build_folium_map(df.to_json())
+with right:
 
-    # FIX: returned_objects=[] prevents st_folium from emitting map-interaction
-    # events back to Streamlit, which is the primary cause of flickering reruns.
-    # A stable `key` stops the iframe from remounting on unrelated state changes.
+    st.subheader("🗺 Live AQI Map")
+
+    fmap = build_folium_map(df.to_json())
+
     st_folium(
-        folium_map,
+        fmap,
         width="100%",
-        height=400,
-        key="aqi_map",           # stable key → no remount on reruns
-        returned_objects=[],     # no interaction callbacks → no flicker reruns
+        height=500,
+        key="aqi_map",
+        returned_objects=[]
     )
 
 st.divider()
 
-# ── Forecast Chart ───────────────────────────────────────────────────────────
-st.subheader("📈 AI Forecast — Next 3 Days")
-city = st.selectbox("Select city:", df["City"].tolist())
+# ---------------------------------------------------
+# FORECAST
+# ---------------------------------------------------
 
-current_aqi = int(df.loc[df["City"] == city, "AQI"].values[0])
-fc = city_forecasts[city]
-labels = ["Today"] + [f["Date"].strftime("%a %b %d") for f in fc]
-vals   = [current_aqi] + [f["Predicted AQI"] for f in fc]
-lows   = [current_aqi] + [f["Low"] for f in fc]
-highs  = [current_aqi] + [f["High"] for f in fc]
+st.subheader("📈 AI AQI Forecast")
+
+city = st.selectbox(
+    "Choose City",
+    df["City"].tolist()
+)
+
+current = int(
+    df.loc[df["City"] == city, "AQI"].values[0]
+)
+
+forecast = city_forecasts[city]
+
+labels = ["Today"] + [
+    f["Date"].strftime("%d %b")
+    for f in forecast
+]
+
+values = [current] + [
+    f["Predicted AQI"]
+    for f in forecast
+]
+
+low = [current] + [
+    f["Low"]
+    for f in forecast
+]
+
+high = [current] + [
+    f["High"]
+    for f in forecast
+]
 
 fig = go.Figure()
-fig.add_trace(go.Scatter(x=labels, y=highs, fill=None, mode="lines",
-    line=dict(color="rgba(255,100,50,0)"), showlegend=False))
-fig.add_trace(go.Scatter(x=labels, y=lows, fill="tonexty", mode="lines",
-    fillcolor="rgba(255,150,50,0.18)", line=dict(color="rgba(0,0,0,0)"),
-    name="Confidence range"))
-fig.add_trace(go.Scatter(x=labels, y=vals, mode="lines+markers+text",
-    text=[str(v) for v in vals], textposition="top center",
-    line=dict(color="#e74c3c", width=3),
-    marker=dict(size=11, line=dict(width=2, color="white")),
-    name="Predicted AQI"))
 
-for y0, y1, col in [(0,50,"green"),(50,100,"yellow"),(100,150,"orange"),
-                    (150,200,"red"),(200,300,"purple"),(300,500,"darkred")]:
-    fig.add_hrect(y0=y0, y1=y1, fillcolor=col, opacity=0.05, line_width=0)
+fig.add_trace(go.Scatter(
+    x=labels,
+    y=high,
+    mode="lines",
+    line=dict(color="rgba(255,255,255,0)"),
+    showlegend=False
+))
+
+fig.add_trace(go.Scatter(
+    x=labels,
+    y=low,
+    fill="tonexty",
+    mode="lines",
+    fillcolor="rgba(0,255,255,.18)",
+    line=dict(color="rgba(0,0,0,0)"),
+    name="Confidence"
+))
+
+fig.add_trace(go.Scatter(
+    x=labels,
+    y=values,
+    mode="lines+markers+text",
+    text=[str(i) for i in values],
+    textposition="top center",
+    line=dict(width=4,color="#00F5FF"),
+    marker=dict(size=12),
+    name="Prediction"
+))
 
 fig.update_layout(
-    title=f"AQI Forecast — {city}",
-    xaxis_title="Date", yaxis_title="AQI",
-    template="plotly_dark", height=380,
-    yaxis=dict(range=[0, max(highs + [300]) + 40]),
-    margin=dict(l=40, r=20, t=50, b=40),
+    template="plotly_dark",
+    height=450,
+    title=f"{city} AQI Forecast",
+    yaxis_title="AQI",
+    xaxis_title="Date",
+    margin=dict(l=30,r=20,t=60,b=20)
 )
-st.plotly_chart(fig, use_container_width=True)
 
-m1, m2, m3 = st.columns(3)
-for col, f in zip([m1, m2, m3], fc):
-    delta = f["Predicted AQI"] - current_aqi
-    col.metric(f["Date"].strftime("%A, %b %d"),
-               f"AQI {f['Predicted AQI']}", f"{delta:+d} vs today",
-               delta_color="inverse")
+st.plotly_chart(
+    fig,
+    use_container_width=True
+)
 
 st.divider()
 
-# ── Hotspot Detection ────────────────────────────────────────────────────────
+# ---------------------------------------------------
+# HOTSPOTS
+# ---------------------------------------------------
+
 st.subheader("🔥 Pollution Hotspots")
-threshold = st.slider("AQI threshold", 50, 300, 150, step=10)
-hot = df[df["AQI"] > threshold]
-if len(hot):
-    st.warning(f"⚠️ {len(hot)} city/cities exceed AQI {threshold}")
-    st.dataframe(hot[["City","AQI","Status","Day+1","Day+2","Day+3"]],
-                 hide_index=True, use_container_width=True)
+
+threshold = st.slider(
+    "AQI Threshold",
+    50,
+    300,
+    150,
+    step=10
+)
+
+hotspots = df[df["AQI"] > threshold]
+
+if hotspots.empty:
+
+    st.success("🎉 No hotspot detected.")
+
 else:
-    st.success(f"✅ No cities exceed AQI {threshold}")
+
+    st.warning(
+        f"{len(hotspots)} hotspot(s) detected."
+    )
+
+    st.dataframe(
+        hotspots[
+            [
+                "City",
+                "AQI",
+                "Status",
+                "Day+1",
+                "Day+2",
+                "Day+3"
+            ]
+        ],
+        hide_index=True,
+        use_container_width=True
+    )

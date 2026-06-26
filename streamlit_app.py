@@ -266,7 +266,7 @@ if not st.session_state.started:
     c1, c2, c3 = st.columns([1,2,1])
 
     with c2:
-        if st.button("🛺 JACK IN TO VAYUSHASHTRA"):
+        if st.button("🛰️ Summon the Satellites"):
             st.session_state.started = True
             st.rerun()
 

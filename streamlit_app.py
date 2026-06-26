@@ -9,87 +9,109 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
 # Must be the first Streamlit command
-st.set_page_config(page_title="AIRVERSE AI 🪷", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="NEO-AIRVERSE 🪷", layout="wide", initial_sidebar_state="collapsed")
 
-# ── Custom CSS (Bright, Cute, Indian Theme) ──────────────────────────────────
+# ── Custom CSS (Cyberpunk + Touch of India) ──────────────────────────────────
 st.markdown("""
 <style>
 #MainMenu, header, footer {
     visibility:hidden;
 }
 
-/* Light, cute pastel background with a touch of warm saffron/cream */
+/* Deep void background with neon cyan and magenta radial glows */
 .stApp {
-    background: linear-gradient(135deg, #FFF0F5 0%, #FFF8DC 50%, #E0FFFF 100%);
-    color: #5D4037;
-    font-family: 'Quicksand', 'Comic Sans MS', sans-serif;
+    background-color: #050816;
+    background-image: 
+        radial-gradient(circle at top left, rgba(0, 245, 255, 0.15), transparent 40%),
+        radial-gradient(circle at bottom right, rgba(255, 0, 229, 0.15), transparent 40%);
+    color: #E0FFFF;
+    font-family: 'Courier New', Courier, monospace; /* Tech/Hacker font vibe */
 }
 
-/* Bright text overrides for light mode */
+/* Bright text overrides for dark mode */
 h1, h2, h3, h4, h5, h6, p, span, label, .st-emotion-cache-1wivap2 {
-    color: #5D4037 !important;
+    color: #E0FFFF !important;
 }
 
-/* Saffron, Pink, and India Green gradient for the main title */
+/* Neon Saffron, Hot Pink, and Cyan gradient with a glowing text shadow */
 .main-title{
-    font-size:4rem;
-    font-weight:900;
-    text-align:center;
-    background: linear-gradient(90deg, #FF9933, #FF1493, #138808);
+    font-size: 4rem;
+    font-weight: 900;
+    text-align: center;
+    background: linear-gradient(90deg, #FF9933, #FF00E5, #00F5FF);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent !important;
+    text-shadow: 0px 0px 15px rgba(255, 0, 229, 0.4);
 }
 
-/* Cute, soft frosted glass panels */
+/* Cyber-glass panels with glowing borders */
 .glass{
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(10, 15, 30, 0.7);
     backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 105, 180, 0.3); /* Soft pink border */
-    border-radius: 25px;
+    border: 1px solid #00F5FF; /* Neon Cyan border */
+    border-radius: 10px; /* Sharper corners for cyberpunk */
     padding: 20px;
     text-align: center;
-    box-shadow: 0 8px 32px 0 rgba(255, 153, 51, 0.15); /* Soft saffron shadow */
-    transition: transform 0.3s;
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.2), inset 0 0 10px rgba(0, 245, 255, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .glass:hover {
     transform: translateY(-5px);
+    box-shadow: 0 0 30px rgba(255, 0, 229, 0.4), inset 0 0 15px rgba(255, 0, 229, 0.2);
+    border-color: #FF00E5;
 }
 
-/* Button styling */
+/* Cyberpunk Button styling */
 div.stButton > button {
     width: 100%;
-    border-radius: 50px;
+    border-radius: 5px;
     font-weight: 800;
     font-size: 1.2rem;
-    background: linear-gradient(90deg, #FF9933, #FF69B4); /* Saffron to Hot Pink */
-    color: white !important;
-    border: none;
+    background: transparent;
+    color: #00F5FF !important;
+    border: 2px solid #00F5FF;
     height: 60px;
-    box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
+    box-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 div.stButton > button * {
-    color: white !important;
+    color: #00F5FF !important;
 }
 
 div.stButton > button:hover{
-    transform: scale(1.05);
-    transition: 0.3s;
-    background: linear-gradient(90deg, #FF69B4, #FF9933);
+    transform: scale(1.02);
+    transition: 0.2s;
+    background: #00F5FF;
+    color: #050816 !important;
+    box-shadow: 0 0 30px rgba(0, 245, 255, 0.6);
 }
 
-/* Metric styling fixes */
+div.stButton > button:hover * {
+    color: #050816 !important;
+}
+
+/* Metric styling fixes - Hot Pink */
 [data-testid="stMetricValue"] {
-    color: #FF1493 !important; /* Hot pink metrics */
+    color: #FF00E5 !important; 
     font-weight: 900;
+    text-shadow: 0 0 10px rgba(255, 0, 229, 0.5);
+}
+
+/* DataFrame Customization */
+[data-testid="stDataFrame"] {
+    background-color: rgba(10, 15, 30, 0.8);
+    border: 1px solid #FF00E5;
+    box-shadow: 0 0 15px rgba(255, 0, 229, 0.2);
 }
 </style>
 """, unsafe_allow_html=True)
 
 
 # ── Configuration & Functions ────────────────────────────────────────────────
-WAQI_TOKEN = "demo"  # Replace with your actual WAQI API token if needed
+WAQI_TOKEN = "demo"  
 
 CITIES = {
     "Delhi": (28.6139, 77.2090),
@@ -103,7 +125,6 @@ CITIES = {
 }
 
 def fetch_waqi(lat, lon):
-    """Fetches real-time AQI from the World Air Quality Index project."""
     url = f"https://api.waqi.info/feed/geo:{lat};{lon}/?token={WAQI_TOKEN}"
     try:
         response = requests.get(url, timeout=5).json()
@@ -116,23 +137,22 @@ def fetch_waqi(lat, lon):
     return np.random.randint(50, 350)
 
 def aqi_label(aqi):
-    if aqi <= 50: return "Good 🌸"
-    elif aqi <= 100: return "Satisfactory 🍃"
-    elif aqi <= 200: return "Moderate 🌤️"
-    elif aqi <= 300: return "Poor 😷"
-    elif aqi <= 400: return "Very Poor 🤧"
-    else: return "Severe 🚨"
+    if aqi <= 50: return "Optimal 🪷"
+    elif aqi <= 100: return "Nominal 🍃"
+    elif aqi <= 200: return "Elevated 🌤️"
+    elif aqi <= 300: return "Degraded 😷"
+    elif aqi <= 400: return "Hazardous ⚠️"
+    else: return "CRITICAL 🚨"
 
 def aqi_color(aqi):
-    if aqi <= 50: return "#00e400"
-    elif aqi <= 100: return "#ffff00"
-    elif aqi <= 200: return "#ff7e00"
-    elif aqi <= 300: return "#ff0000"
-    elif aqi <= 400: return "#8f3f97"
-    else: return "#7e0023"
+    if aqi <= 50: return "#00FF88" # Neon Green
+    elif aqi <= 100: return "#FFFF00" # Neon Yellow
+    elif aqi <= 200: return "#FF9933" # Neon Saffron
+    elif aqi <= 300: return "#FF0055" # Crimson Neon
+    elif aqi <= 400: return "#FF00E5" # Hot Magenta
+    else: return "#8B00FF" # Deep Purple
 
 def ai_forecast(current_aqi):
-    """Generates a simulated 3-day forecast based on current AQI."""
     forecast = []
     base_date = datetime.now()
     for i in range(1, 4):
@@ -172,20 +192,19 @@ def load_all_city_data():
     return pd.DataFrame(records), city_forecasts
 
 def build_folium_map(df):
-    """Constructs a light-themed folium map."""
-    # Changed tiles to a beautiful, light, clean map style
-    m = folium.Map(location=[22.0, 79.0], zoom_start=5, tiles="CartoDB positron")
+    """Constructs a dark-themed, cyberpunk folium map."""
+    m = folium.Map(location=[22.0, 79.0], zoom_start=5, tiles="CartoDB dark_matter")
     for _, row in df.iterrows():
         folium.CircleMarker(
             location=[row["Lat"], row["Lon"]],
             radius=10,
-            popup=f"<b>{row['City']}</b><br>AQI: {row['AQI']}<br>Status: {row['Status']}",
+            popup=f"<b style='color:#000;'>{row['City']}</b><br><span style='color:#000;'>AQI: {row['AQI']}</span><br><span style='color:#000;'>Status: {row['Status']}</span>",
             tooltip=f"{row['City']} (AQI: {row['AQI']})",
             color=aqi_color(row["AQI"]),
             fill=True,
             fill_color=aqi_color(row["AQI"]),
-            fill_opacity=0.8,
-            weight=2
+            fill_opacity=0.9,
+            weight=3
         ).add_to(m)
     return m
 
@@ -200,12 +219,12 @@ if "started" not in st.session_state:
 if not st.session_state.started:
     st.markdown("""
     <div style='text-align:center;padding-top:80px;'>
-    <h1 class='main-title'>AIRVERSE AI 🪷✨</h1>
-    <h3 style='color:#FF1493;'>
-    India's Next Generation Air Intelligence Platform 🇮🇳
+    <h1 class='main-title'>NEO-AIRVERSE 2077 🪷</h1>
+    <h3 style='color:#00F5FF; text-shadow: 0 0 10px #00F5FF;'>
+    India's Next-Gen Cybernetic Air Grid 🇮🇳
     </h3>
-    <p style='color:#FF9933; font-size:22px; font-weight:bold;'>
-    Track AQI • Predict Pollution • Detect Hotspots
+    <p style='color:#FF9933; font-size:22px; font-weight:bold; text-shadow: 0 0 5px #FF9933;'>
+    Sys.Track(AQI) • Neural.Predict() • Alert(Hotspots)
     </p>
     </div>
     """, unsafe_allow_html=True)
@@ -214,7 +233,7 @@ if not st.session_state.started:
     c1, c2, c3 = st.columns([1,2,1])
 
     with c2:
-        if st.button("🛺 HOP IN & ENTER AIRVERSE"):
+        if st.button("🛺 JACK IN TO AIRVERSE"):
             st.session_state.started = True
             st.rerun()
 
@@ -222,13 +241,13 @@ if not st.session_state.started:
 
     a, b, c, d = st.columns(4)
     with a:
-        st.markdown("<div class='glass'><h2>🌸</h2><b>Live AQI</b><br>Real-Time Updates</div>", unsafe_allow_html=True)
+        st.markdown("<div class='glass'><h2>🪷</h2><b>Live Telemetry</b><br>Real-Time Sync</div>", unsafe_allow_html=True)
     with b:
-        st.markdown("<div class='glass'><h2>🐘</h2><b>AI Forecast</b><br>72 Hour Prediction</div>", unsafe_allow_html=True)
+        st.markdown("<div class='glass'><h2>🤖</h2><b>Neural Forecast</b><br>72H Simulation</div>", unsafe_allow_html=True)
     with c:
-        st.markdown("<div class='glass'><h2>🌶️</h2><b>Hotspots</b><br>Pollution Alerts</div>", unsafe_allow_html=True)
+        st.markdown("<div class='glass'><h2>🔥</h2><b>Red Zones</b><br>Toxicity Alerts</div>", unsafe_allow_html=True)
     with d:
-        st.markdown("<div class='glass'><h2>🪁</h2><b>Satellite Data</b><br>Advanced Monitoring</div>", unsafe_allow_html=True)
+        st.markdown("<div class='glass'><h2>🛰️</h2><b>Orbital Uplink</b><br>Satellite Feed</div>", unsafe_allow_html=True)
 
     st.stop()
 
@@ -240,18 +259,18 @@ if not st.session_state.started:
 # Back Button
 c1, c2 = st.columns([1, 5])
 with c1:
-    if st.button("⬅ Back Home"):
+    if st.button("⬅ DISCONNECT"):
         st.session_state.started = False
         st.rerun()
 
 st.markdown("""
 <h1 class='main-title'>
-🪷 AIRVERSE AI 🪷
+🪷 NEO-AIRVERSE 🪷
 </h1>
 """, unsafe_allow_html=True)
 
 st.markdown(
-"<center><h4 style='color:#FF1493;'>Predict Tomorrow's Air Before It Happens 🛺✨</h4></center>",
+"<center><h4 style='color:#00F5FF;'>Simulating Tomorrow's Atmosphere 🛺⚡</h4></center>",
 unsafe_allow_html=True
 )
 
@@ -260,11 +279,11 @@ st.divider()
 # ---------------------------------------------------
 # LOAD DATA
 # ---------------------------------------------------
-with st.spinner("🪁 Flying kites to catch satellite signals..."):
+with st.spinner("🛰️ Establishing orbital uplink..."):
     df, city_forecasts = load_all_city_data()
 
 if df.empty:
-    st.error("Oops! Unable to fetch AQI data right now. 🌧️")
+    st.error("SYSTEM FAILURE: Unable to sync with AQI mainframe. 💥")
     st.stop()
 
 # ---------------------------------------------------
@@ -277,11 +296,11 @@ avg = int(df["AQI"].mean())
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.info(f"**🌶️ Most Polluted:** {worst['City']} (AQI {worst['AQI']})")
+    st.error(f"**🔥 TOXIC PEAK:** {worst['City']} (AQI {worst['AQI']})")
 with col2:
-    st.success(f"**🌸 Cleanest:** {best['City']} (AQI {best['AQI']})")
+    st.success(f"**🪷 OPTIMAL ZONE:** {best['City']} (AQI {best['AQI']})")
 with col3:
-    st.warning(f"**📊 Average AQI:** {avg} - {aqi_label(avg)}")
+    st.info(f"**📊 GRID AVERAGE:** {avg} - {aqi_label(avg)}")
 
 st.divider()
 
@@ -291,7 +310,7 @@ st.divider()
 left, right = st.columns([4,6])
 
 with left:
-    st.markdown("<h3 style='color:#FF9933;'>🏙️ Live City AQI</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#FF9933; text-shadow: 0 0 10px #FF9933;'>🏙️ SECTOR TELEMETRY</h3>", unsafe_allow_html=True)
     
     table = df[["City","AQI","Status","Day+1","Day+2","Day+3"]].copy()
     
@@ -301,14 +320,14 @@ with left:
         hide_index=True,
         column_config={
             "AQI": st.column_config.ProgressColumn("AQI", min_value=0, max_value=500, format="%f"),
-            "Day+1": st.column_config.ProgressColumn("Day +1", min_value=0, max_value=500),
-            "Day+2": st.column_config.ProgressColumn("Day +2", min_value=0, max_value=500),
-            "Day+3": st.column_config.ProgressColumn("Day +3", min_value=0, max_value=500),
+            "Day+1": st.column_config.ProgressColumn("T+24H", min_value=0, max_value=500),
+            "Day+2": st.column_config.ProgressColumn("T+48H", min_value=0, max_value=500),
+            "Day+3": st.column_config.ProgressColumn("T+72H", min_value=0, max_value=500),
         }
     )
 
 with right:
-    st.markdown("<h3 style='color:#FF9933;'>🗺️ Live AQI Map</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#00F5FF; text-shadow: 0 0 10px #00F5FF;'>🗺️ TACTICAL MAP</h3>", unsafe_allow_html=True)
     
     fmap = build_folium_map(df)
     
@@ -325,14 +344,14 @@ st.divider()
 # ---------------------------------------------------
 # FORECAST
 # ---------------------------------------------------
-st.markdown("<h3 style='color:#138808;'>📈 AI AQI Forecast</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='color:#FF00E5; text-shadow: 0 0 10px #FF00E5;'>📈 NEURAL FORECAST</h3>", unsafe_allow_html=True)
 
-city = st.selectbox("Choose a City 🐘", df["City"].tolist())
+city = st.selectbox("Select Target Sector 🐘", df["City"].tolist())
 
 current = int(df.loc[df["City"] == city, "AQI"].values[0])
 forecast = city_forecasts[city]
 
-labels = ["Today"] + [f["Date"].strftime("%d %b") for f in forecast]
+labels = ["SYNC"] + [f"T+{i*24}H" for i in range(1, 4)]
 values = [current] + [f["Predicted AQI"] for f in forecast]
 low = [current] + [f["Low"] for f in forecast]
 high = [current] + [f["High"] for f in forecast]
@@ -345,34 +364,37 @@ fig.add_trace(go.Scatter(
     showlegend=False
 ))
 
-# Cute saffron/peach shading for confidence interval
+# Deep magenta shading for confidence interval
 fig.add_trace(go.Scatter(
     x=labels, y=low, fill="tonexty", mode="lines",
-    fillcolor="rgba(255, 153, 51, 0.2)", 
+    fillcolor="rgba(255, 0, 229, 0.15)", 
     line=dict(color="rgba(0,0,0,0)"),
-    name="Confidence"
+    name="Variance Bound"
 ))
 
-# Hot pink prediction line
+# Neon Cyan prediction line
 fig.add_trace(go.Scatter(
     x=labels, y=values, mode="lines+markers+text",
     text=[str(i) for i in values],
     textposition="top center",
-    line=dict(width=5, color="#FF1493"), 
-    marker=dict(size=14, color="#138808", line=dict(width=2, color="white")),
-    name="Prediction"
+    textfont=dict(color="#00F5FF"),
+    line=dict(width=4, color="#00F5FF"), 
+    marker=dict(size=12, color="#050816", line=dict(width=2, color="#00F5FF")),
+    name="Neural Path"
 ))
 
-# Light theme for Plotly
+# Dark grid theme for Plotly
 fig.update_layout(
-    template="plotly_white",
+    template="plotly_dark",
     height=400,
-    title=dict(text=f"✨ {city} AQI Forecast Trend ✨", font=dict(color="#FF9933", size=20)),
-    yaxis_title="Air Quality Index",
-    xaxis_title="Date",
+    title=dict(text=f"// {city.upper()} AQI TRAJECTORY", font=dict(color="#FF9933", size=20, family="Courier New")),
+    yaxis_title="TOXICITY LEVEL (AQI)",
+    xaxis_title="TIMEFRAME",
     margin=dict(l=30,r=20,t=60,b=20),
-    plot_bgcolor="rgba(255, 255, 255, 0.5)",
-    paper_bgcolor="rgba(255, 255, 255, 0)"
+    plot_bgcolor="rgba(10, 15, 30, 0.8)",
+    paper_bgcolor="rgba(0, 0, 0, 0)",
+    xaxis=dict(showgrid=True, gridcolor='rgba(0, 245, 255, 0.1)'),
+    yaxis=dict(showgrid=True, gridcolor='rgba(0, 245, 255, 0.1)')
 )
 
 st.plotly_chart(fig, use_container_width=True)
@@ -382,16 +404,16 @@ st.divider()
 # ---------------------------------------------------
 # HOTSPOTS
 # ---------------------------------------------------
-st.markdown("<h3 style='color:#FF1493;'>🌶️ Pollution Hotspots</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='color:#FF0000; text-shadow: 0 0 10px #FF0000;'>🔥 RED ZONES</h3>", unsafe_allow_html=True)
 
-threshold = st.slider("Drag to set AQI Warning Threshold ✨", 50, 300, 150, step=10)
+threshold = st.slider("Set Toxicity Alert Threshold ⚡", 50, 300, 150, step=10)
 
 hotspots = df[df["AQI"] > threshold]
 
 if hotspots.empty:
-    st.success(f"🎉 Yay! No hotspots detected above {threshold} AQI. The air is lovely! 🪷")
+    st.success(f"SYSTEM CLEAR: No sectors breach {threshold} AQI. Breathe easy, Choom. 🪷")
 else:
-    st.warning(f"Oh no! 🤧 {len(hotspots)} hotspot(s) detected with AQI above {threshold}.")
+    st.warning(f"WARNING: {len(hotspots)} sector(s) exceeding safety threshold {threshold}. 😷")
     
     st.dataframe(
         hotspots[["City", "AQI", "Status", "Day+1", "Day+2", "Day+3"]],

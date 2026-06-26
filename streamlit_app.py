@@ -25,7 +25,7 @@ st.markdown("""
         radial-gradient(circle at top left, rgba(0, 245, 255, 0.15), transparent 40%),
         radial-gradient(circle at bottom right, rgba(255, 0, 229, 0.15), transparent 40%);
     color: #E0FFFF;
-    font-family: 'Courier New', Courier, monospace; /* Tech/Hacker font vibe */
+    font-family: 'Courier New', Courier, monospace;
 }
 
 /* Bright text overrides for dark mode */
@@ -48,8 +48,8 @@ h1, h2, h3, h4, h5, h6, p, span, label, .st-emotion-cache-1wivap2 {
 .glass{
     background: rgba(10, 15, 30, 0.7);
     backdrop-filter: blur(10px);
-    border: 1px solid #00F5FF; /* Neon Cyan border */
-    border-radius: 10px; /* Sharper corners for cyberpunk */
+    border: 1px solid #00F5FF; 
+    border-radius: 10px; 
     padding: 20px;
     text-align: center;
     box-shadow: 0 0 20px rgba(0, 245, 255, 0.2), inset 0 0 10px rgba(0, 245, 255, 0.1);
@@ -113,6 +113,7 @@ div.stButton > button:hover * {
 # ── Configuration & Functions ────────────────────────────────────────────────
 WAQI_TOKEN = "demo"  
 
+# Expanded list of sectors with precise grid coordinates
 CITIES = {
     "Delhi": (28.6139, 77.2090),
     "Mumbai": (19.0760, 72.8777),
@@ -121,8 +122,22 @@ CITIES = {
     "Kolkata": (22.5726, 88.3639),
     "Hyderabad": (17.3850, 78.4867),
     "Ahmedabad": (23.0225, 72.5714),
-    "Pune": (18.5204, 73.8567)
+    "Pune": (18.5204, 73.8567),
+    "Jamshedpur": (22.8046, 86.2029),
+    "Joda": (22.0167, 85.4333),
+    "Jaipur": (26.9124, 75.7873),
+    "Bhopal": (23.2599, 77.4126),
+    "Kochi": (9.9312, 76.2673)
 }
+
+# Cyber Grid network links mapping nodes together
+GRID_LINES = [
+    ("Delhi", "Jaipur"), ("Delhi", "Bhopal"), ("Jaipur", "Ahmedabad"),
+    ("Ahmedabad", "Mumbai"), ("Mumbai", "Pune"), ("Bhopal", "Mumbai"),
+    ("Bhopal", "Kolkata"), ("Bhopal", "Hyderabad"), ("Kolkata", "Jamshedpur"),
+    ("Jamshedpur", "Joda"), ("Joda", "Hyderabad"), ("Hyderabad", "Bengaluru"),
+    ("Hyderabad", "Chennai"), ("Bengaluru", "Chennai"), ("Bengaluru", "Kochi")
+]
 
 def fetch_waqi(lat, lon):
     url = f"https://api.waqi.info/feed/geo:{lat};{lon}/?token={WAQI_TOKEN}"
@@ -145,12 +160,12 @@ def aqi_label(aqi):
     else: return "CRITICAL 🚨"
 
 def aqi_color(aqi):
-    if aqi <= 50: return "#00FF88" # Neon Green
-    elif aqi <= 100: return "#FFFF00" # Neon Yellow
-    elif aqi <= 200: return "#FF9933" # Neon Saffron
-    elif aqi <= 300: return "#FF0055" # Crimson Neon
-    elif aqi <= 400: return "#FF00E5" # Hot Magenta
-    else: return "#8B00FF" # Deep Purple
+    if aqi <= 50: return "#00FF88" 
+    elif aqi <= 100: return "#FFFF00" 
+    elif aqi <= 200: return "#FF9933" 
+    elif aqi <= 300: return "#FF0055" 
+    elif aqi <= 400: return "#FF00E5" 
+    else: return "#8B00FF" 
 
 def ai_forecast(current_aqi):
     forecast = []
@@ -192,20 +207,38 @@ def load_all_city_data():
     return pd.DataFrame(records), city_forecasts
 
 def build_folium_map(df):
-    """Constructs a dark-themed, cyberpunk folium map."""
+    """Constructs a dark-themed, cyberpunk map equipped with network lines."""
     m = folium.Map(location=[22.0, 79.0], zoom_start=5, tiles="CartoDB dark_matter")
+    
+    # 1. Draw the Grid Datalinks (Lines connecting the cities)
+    for start_node, end_node in GRID_LINES:
+        if start_node in CITIES and end_node in CITIES:
+            start_coord = CITIES[start_node]
+            end_coord = CITIES[end_node]
+            
+            # Subtle cyan data trace line
+            folium.PolyLine(
+                locations=[start_coord, end_coord],
+                color="#00F5FF",
+                weight=1.5,
+                opacity=0.4,
+                tooltip=f"Datalink: {start_node} ⚡ {end_node}"
+            ).add_to(m)
+
+    # 2. Draw Node Sectors (City Markers)
     for _, row in df.iterrows():
         folium.CircleMarker(
             location=[row["Lat"], row["Lon"]],
-            radius=10,
-            popup=f"<b style='color:#000;'>{row['City']}</b><br><span style='color:#000;'>AQI: {row['AQI']}</span><br><span style='color:#000;'>Status: {row['Status']}</span>",
-            tooltip=f"{row['City']} (AQI: {row['AQI']})",
+            radius=9,
+            popup=f"<b style='color:#000;'>{row['City']} Hub</b><br><span style='color:#000;'>AQI: {row['AQI']}</span><br><span style='color:#000;'>Status: {row['Status']}</span>",
+            tooltip=f"{row['City']} Node (AQI: {row['AQI']})",
             color=aqi_color(row["AQI"]),
             fill=True,
             fill_color=aqi_color(row["AQI"]),
             fill_opacity=0.9,
             weight=3
         ).add_to(m)
+        
     return m
 
 
@@ -224,7 +257,7 @@ if not st.session_state.started:
     India's Next-Gen Cybernetic Air Grid 🇮🇳
     </h3>
     <p style='color:#FF9933; font-size:22px; font-weight:bold; text-shadow: 0 0 5px #FF9933;'>
-    Sys.Track(AQI) • Neural.Predict() • Alert(Hotspots)
+    Sys.Track(AQI) • Neural.Predict() • Alert(Grid Lines)
     </p>
     </div>
     """, unsafe_allow_html=True)
@@ -327,7 +360,7 @@ with left:
     )
 
 with right:
-    st.markdown("<h3 style='color:#00F5FF; text-shadow: 0 0 10px #00F5FF;'>🗺️ TACTICAL MAP</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#00F5FF; text-shadow: 0 0 10px #00F5FF;'>🗺️ TACTICAL MAP & DATALINKS</h3>", unsafe_allow_html=True)
     
     fmap = build_folium_map(df)
     
@@ -364,7 +397,6 @@ fig.add_trace(go.Scatter(
     showlegend=False
 ))
 
-# Deep magenta shading for confidence interval
 fig.add_trace(go.Scatter(
     x=labels, y=low, fill="tonexty", mode="lines",
     fillcolor="rgba(255, 0, 229, 0.15)", 
@@ -372,7 +404,6 @@ fig.add_trace(go.Scatter(
     name="Variance Bound"
 ))
 
-# Neon Cyan prediction line
 fig.add_trace(go.Scatter(
     x=labels, y=values, mode="lines+markers+text",
     text=[str(i) for i in values],
@@ -383,7 +414,6 @@ fig.add_trace(go.Scatter(
     name="Neural Path"
 ))
 
-# Dark grid theme for Plotly
 fig.update_layout(
     template="plotly_dark",
     height=400,

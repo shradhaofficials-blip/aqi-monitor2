@@ -86,6 +86,42 @@ div.stButton > button:hover{
 }
 </style>
 """, unsafe_allow_html=True)
+body{
+overflow-x:hidden;
+}
+
+body::before{
+content:"";
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+
+background-image:
+radial-gradient(#00ffff 1px, transparent 1px),
+radial-gradient(#ff00ff 1px, transparent 1px);
+
+background-size:120px 120px;
+
+animation:moveStars 40s linear infinite;
+
+opacity:.18;
+
+z-index:-2;
+}
+
+@keyframes moveStars{
+
+0%{
+transform:translateY(0px);
+}
+
+100%{
+transform:translateY(-250px);
+}
+
+}
 
 
 # ── Configuration & Functions ────────────────────────────────────────────────

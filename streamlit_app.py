@@ -104,7 +104,7 @@ radial-gradient(#ff00ff 1px, transparent 1px);
 
 background-size:120, 120;
 
-animation:moveStars 40s linear infinite;
+animation:moveStars 40 linear infinite;
 
 opacity:.18;
 

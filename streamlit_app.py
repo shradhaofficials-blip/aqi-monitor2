@@ -138,6 +138,23 @@ if not st.session_state.started:
         """, unsafe_allow_html=True)
 
     st.stop()
+    CITIES = {...}
+
+WAQI_TOKEN = "demo"   # or your token
+
+fetch_waqi()
+
+pm25_to_aqi()
+
+ai_forecast()
+
+aqi_color()
+
+aqi_label()
+
+load_all_city_data()   ← Missing
+
+build_folium_map()     ← Missing
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  MAIN APP

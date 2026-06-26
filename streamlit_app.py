@@ -102,7 +102,7 @@ background-image:
 radial-gradient(#00ffff 1px, transparent 1px),
 radial-gradient(#ff00ff 1px, transparent 1px);
 
-background-size:120px 120px;
+background-size:120, 120;
 
 animation:moveStars 40s linear infinite;
 
@@ -114,11 +114,11 @@ z-index:-2;
 @keyframes moveStars{
 
 0%{
-transform:translateY(0px);
+transform:translateY(0);
 }
 
 100%{
-transform:translateY(-250px);
+transform:translateY(-250);
 }
 
 }

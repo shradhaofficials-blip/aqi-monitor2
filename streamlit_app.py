@@ -9,54 +9,80 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
 # Must be the first Streamlit command
-st.set_page_config(page_title="AIRVERSE AI", layout="wide")
+st.set_page_config(page_title="VayuShashtra Ai 🪷", layout="wide", initial_sidebar_state="collapsed")
 
-# ── Custom CSS ───────────────────────────────────────────────────────────────
+# ── Custom CSS (Bright, Cute, Indian Theme) ──────────────────────────────────
 st.markdown("""
 <style>
 #MainMenu, header, footer {
     visibility:hidden;
 }
+
+/* Light, cute pastel background with a touch of warm saffron/cream */
 .stApp {
-    background:
-    radial-gradient(circle at top left,#00ffff20,transparent 30%),
-    radial-gradient(circle at bottom right,#ff00ff20,transparent 30%),
-    #050816;
-    color:white;
+    background: linear-gradient(135deg, #FFF0F5 0%, #FFF8DC 50%, #E0FFFF 100%);
+    color: #5D4037;
+    font-family: 'Quicksand', 'Comic Sans MS', sans-serif;
 }
+
+/* Bright text overrides for light mode */
+h1, h2, h3, h4, h5, h6, p, span, label, .st-emotion-cache-1wivap2 {
+    color: #5D4037 !important;
+}
+
+/* Saffron, Pink, and India Green gradient for the main title */
 .main-title{
     font-size:4rem;
     font-weight:900;
     text-align:center;
-    background:linear-gradient(90deg,#00F5FF,#FF00E5,#00FF88);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
+    background: linear-gradient(90deg, #FF9933, #FF1493, #138808);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent !important;
 }
+
+/* Cute, soft frosted glass panels */
 .glass{
-    background:rgba(255,255,255,0.05);
-    backdrop-filter:blur(15px);
-    border:1px solid rgba(255,255,255,0.1);
-    border-radius:20px;
-    padding:20px;
-    text-align:center;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 105, 180, 0.3); /* Soft pink border */
+    border-radius: 25px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 8px 32px 0 rgba(255, 153, 51, 0.15); /* Soft saffron shadow */
+    transition: transform 0.3s;
 }
-.metric-card{
-    background:rgba(255,255,255,0.08);
-    border-radius:20px;
-    padding:15px;
+
+.glass:hover {
+    transform: translateY(-5px);
 }
+
+/* Button styling */
 div.stButton > button {
-    width:100%;
-    border-radius:50px;
-    font-weight:800;
-    background:linear-gradient(90deg,#00F5FF,#FF00E5);
-    color:black;
-    border:none;
-    height:60px;
+    width: 100%;
+    border-radius: 50px;
+    font-weight: 800;
+    font-size: 1.2rem;
+    background: linear-gradient(90deg, #FF9933, #FF69B4); /* Saffron to Hot Pink */
+    color: white !important;
+    border: none;
+    height: 60px;
+    box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
 }
+
+div.stButton > button * {
+    color: white !important;
+}
+
 div.stButton > button:hover{
-    transform:scale(1.05);
-    transition:0.3s;
+    transform: scale(1.05);
+    transition: 0.3s;
+    background: linear-gradient(90deg, #FF69B4, #FF9933);
+}
+
+/* Metric styling fixes */
+[data-testid="stMetricValue"] {
+    color: #FF1493 !important; /* Hot pink metrics */
+    font-weight: 900;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -83,25 +109,21 @@ def fetch_waqi(lat, lon):
         response = requests.get(url, timeout=5).json()
         if response.get("status") == "ok":
             aqi = response["data"]["aqi"]
-            # WAQI sometimes returns '-' for missing data
             if isinstance(aqi, int):
                 return aqi
     except Exception:
         pass
-    # Fallback to simulated data if API fails or rate-limits "demo" token
     return np.random.randint(50, 350)
 
 def aqi_label(aqi):
-    """Returns the standard categorization for AQI."""
-    if aqi <= 50: return "Good"
-    elif aqi <= 100: return "Satisfactory"
-    elif aqi <= 200: return "Moderate"
-    elif aqi <= 300: return "Poor"
-    elif aqi <= 400: return "Very Poor"
-    else: return "Severe"
+    if aqi <= 50: return "Good 🌸"
+    elif aqi <= 100: return "Satisfactory 🍃"
+    elif aqi <= 200: return "Moderate 🌤️"
+    elif aqi <= 300: return "Poor 😷"
+    elif aqi <= 400: return "Very Poor 🤧"
+    else: return "Severe 🚨"
 
 def aqi_color(aqi):
-    """Returns hex colors based on standard AQI health brackets."""
     if aqi <= 50: return "#00e400"
     elif aqi <= 100: return "#ffff00"
     elif aqi <= 200: return "#ff7e00"
@@ -114,7 +136,6 @@ def ai_forecast(current_aqi):
     forecast = []
     base_date = datetime.now()
     for i in range(1, 4):
-        # AI Simulation model logic (randomized for demo purposes)
         pred = max(0, current_aqi + np.random.randint(-30, 40))
         low = max(0, pred - np.random.randint(10, 25))
         high = pred + np.random.randint(10, 25)
@@ -126,9 +147,8 @@ def ai_forecast(current_aqi):
         })
     return forecast
 
-@st.cache_data(ttl=900) # Cache for 15 minutes to save API limits
+@st.cache_data(ttl=900)
 def load_all_city_data():
-    """Loads current data and predictions for all configured cities."""
     records = []
     city_forecasts = {}
     
@@ -152,18 +172,20 @@ def load_all_city_data():
     return pd.DataFrame(records), city_forecasts
 
 def build_folium_map(df):
-    """Constructs a dark-themed folium map from the given DataFrame."""
-    m = folium.Map(location=[22.0, 79.0], zoom_start=5, tiles="CartoDB dark_matter")
+    """Constructs a light-themed folium map."""
+    # Changed tiles to a beautiful, light, clean map style
+    m = folium.Map(location=[22.0, 79.0], zoom_start=5, tiles="CartoDB positron")
     for _, row in df.iterrows():
         folium.CircleMarker(
             location=[row["Lat"], row["Lon"]],
-            radius=9,
+            radius=10,
             popup=f"<b>{row['City']}</b><br>AQI: {row['AQI']}<br>Status: {row['Status']}",
             tooltip=f"{row['City']} (AQI: {row['AQI']})",
             color=aqi_color(row["AQI"]),
             fill=True,
             fill_color=aqi_color(row["AQI"]),
-            fill_opacity=0.8
+            fill_opacity=0.8,
+            weight=2
         ).add_to(m)
     return m
 
@@ -177,12 +199,12 @@ if "started" not in st.session_state:
 # ═══════════════════════════════════════════════════════════════════════════
 if not st.session_state.started:
     st.markdown("""
-    <div style='text-align:center;padding-top:100px;'>
-    <h1 class='main-title'>AIRVERSE AI 🌎</h1>
-    <h3 style='color:white;'>
-    India's Next Generation Air Intelligence Platform
+    <div style='text-align:center;padding-top:80px;'>
+    <h1 class='main-title'>AIRVERSE AI 🪷✨</h1>
+    <h3 style='color:#FF1493;'>
+    India's Next Generation Air Intelligence Platform 🇮🇳
     </h3>
-    <p style='color:#b8c1ec;font-size:20px;'>
+    <p style='color:#FF9933; font-size:22px; font-weight:bold;'>
     Track AQI • Predict Pollution • Detect Hotspots
     </p>
     </div>
@@ -192,7 +214,7 @@ if not st.session_state.started:
     c1, c2, c3 = st.columns([1,2,1])
 
     with c2:
-        if st.button("⚡ ENTER AIRVERSE"):
+        if st.button("🛺 HOP IN & ENTER AIRVERSE"):
             st.session_state.started = True
             st.rerun()
 
@@ -200,13 +222,13 @@ if not st.session_state.started:
 
     a, b, c, d = st.columns(4)
     with a:
-        st.markdown("<div class='glass'><h2>⚡</h2><b>Live AQI</b><br>Real-Time Updates</div>", unsafe_allow_html=True)
+        st.markdown("<div class='glass'><h2>🌸</h2><b>Live AQI</b><br>Real-Time Updates</div>", unsafe_allow_html=True)
     with b:
-        st.markdown("<div class='glass'><h2>🤖</h2><b>AI Forecast</b><br>72 Hour Prediction</div>", unsafe_allow_html=True)
+        st.markdown("<div class='glass'><h2>🐘</h2><b>AI Forecast</b><br>72 Hour Prediction</div>", unsafe_allow_html=True)
     with c:
-        st.markdown("<div class='glass'><h2>🔥</h2><b>Hotspots</b><br>Pollution Alerts</div>", unsafe_allow_html=True)
+        st.markdown("<div class='glass'><h2>🌶️</h2><b>Hotspots</b><br>Pollution Alerts</div>", unsafe_allow_html=True)
     with d:
-        st.markdown("<div class='glass'><h2>🛰️</h2><b>Satellite Data</b><br>Advanced Monitoring</div>", unsafe_allow_html=True)
+        st.markdown("<div class='glass'><h2>🪁</h2><b>Satellite Data</b><br>Advanced Monitoring</div>", unsafe_allow_html=True)
 
     st.stop()
 
@@ -216,18 +238,20 @@ if not st.session_state.started:
 # ═══════════════════════════════════════════════════════════════════════════
 
 # Back Button
-if st.button("⬅ Back to Home"):
-    st.session_state.started = False
-    st.rerun()
+c1, c2 = st.columns([1, 5])
+with c1:
+    if st.button("⬅ Back Home"):
+        st.session_state.started = False
+        st.rerun()
 
 st.markdown("""
 <h1 class='main-title'>
-🌎 AIRVERSE AI
+🪷 AIRVERSE AI 🪷
 </h1>
 """, unsafe_allow_html=True)
 
 st.markdown(
-"<center><h4 style='color:#b8c1ec;'>Predict Tomorrow's Air Before It Happens 🚀</h4></center>",
+"<center><h4 style='color:#FF1493;'>Predict Tomorrow's Air Before It Happens 🛺✨</h4></center>",
 unsafe_allow_html=True
 )
 
@@ -236,12 +260,11 @@ st.divider()
 # ---------------------------------------------------
 # LOAD DATA
 # ---------------------------------------------------
-with st.spinner("📡 Connecting to satellite network..."):
+with st.spinner("🪁 Flying kites to catch satellite signals..."):
     df, city_forecasts = load_all_city_data()
 
-# Safety check
 if df.empty:
-    st.error("Unable to fetch AQI data.")
+    st.error("Oops! Unable to fetch AQI data right now. 🌧️")
     st.stop()
 
 # ---------------------------------------------------
@@ -251,11 +274,14 @@ worst = df.loc[df["AQI"].idxmax()]
 best = df.loc[df["AQI"].idxmin()]
 avg = int(df["AQI"].mean())
 
-c1, c2, c3 = st.columns(3)
+col1, col2, col3 = st.columns(3)
 
-c1.metric("🔥 Most Polluted", worst["City"], f"AQI {worst['AQI']}")
-c2.metric("🌿 Cleanest", best["City"], f"AQI {best['AQI']}")
-c3.metric("📊 Average AQI", avg, aqi_label(avg))
+with col1:
+    st.info(f"**🌶️ Most Polluted:** {worst['City']} (AQI {worst['AQI']})")
+with col2:
+    st.success(f"**🌸 Cleanest:** {best['City']} (AQI {best['AQI']})")
+with col3:
+    st.warning(f"**📊 Average AQI:** {avg} - {aqi_label(avg)}")
 
 st.divider()
 
@@ -265,7 +291,7 @@ st.divider()
 left, right = st.columns([4,6])
 
 with left:
-    st.subheader("🏙 Live City AQI")
+    st.markdown("<h3 style='color:#FF9933;'>🏙️ Live City AQI</h3>", unsafe_allow_html=True)
     
     table = df[["City","AQI","Status","Day+1","Day+2","Day+3"]].copy()
     
@@ -274,7 +300,7 @@ with left:
         use_container_width=True,
         hide_index=True,
         column_config={
-            "AQI": st.column_config.ProgressColumn("AQI", min_value=0, max_value=500),
+            "AQI": st.column_config.ProgressColumn("AQI", min_value=0, max_value=500, format="%f"),
             "Day+1": st.column_config.ProgressColumn("Day +1", min_value=0, max_value=500),
             "Day+2": st.column_config.ProgressColumn("Day +2", min_value=0, max_value=500),
             "Day+3": st.column_config.ProgressColumn("Day +3", min_value=0, max_value=500),
@@ -282,14 +308,14 @@ with left:
     )
 
 with right:
-    st.subheader("🗺 Live AQI Map")
+    st.markdown("<h3 style='color:#FF9933;'>🗺️ Live AQI Map</h3>", unsafe_allow_html=True)
     
     fmap = build_folium_map(df)
     
     st_folium(
         fmap,
         width="100%",
-        height=500,
+        height=450,
         key="aqi_map",
         returned_objects=[]
     )
@@ -299,9 +325,9 @@ st.divider()
 # ---------------------------------------------------
 # FORECAST
 # ---------------------------------------------------
-st.subheader("📈 AI AQI Forecast")
+st.markdown("<h3 style='color:#138808;'>📈 AI AQI Forecast</h3>", unsafe_allow_html=True)
 
-city = st.selectbox("Choose City", df["City"].tolist())
+city = st.selectbox("Choose a City 🐘", df["City"].tolist())
 
 current = int(df.loc[df["City"] == city, "AQI"].values[0])
 forecast = city_forecasts[city]
@@ -319,29 +345,34 @@ fig.add_trace(go.Scatter(
     showlegend=False
 ))
 
+# Cute saffron/peach shading for confidence interval
 fig.add_trace(go.Scatter(
     x=labels, y=low, fill="tonexty", mode="lines",
-    fillcolor="rgba(0,255,255,.18)",
+    fillcolor="rgba(255, 153, 51, 0.2)", 
     line=dict(color="rgba(0,0,0,0)"),
     name="Confidence"
 ))
 
+# Hot pink prediction line
 fig.add_trace(go.Scatter(
     x=labels, y=values, mode="lines+markers+text",
     text=[str(i) for i in values],
     textposition="top center",
-    line=dict(width=4,color="#00F5FF"),
-    marker=dict(size=12),
+    line=dict(width=5, color="#FF1493"), 
+    marker=dict(size=14, color="#138808", line=dict(width=2, color="white")),
     name="Prediction"
 ))
 
+# Light theme for Plotly
 fig.update_layout(
-    template="plotly_dark",
-    height=450,
-    title=f"{city} AQI Forecast Trend",
-    yaxis_title="AQI",
+    template="plotly_white",
+    height=400,
+    title=dict(text=f"✨ {city} AQI Forecast Trend ✨", font=dict(color="#FF9933", size=20)),
+    yaxis_title="Air Quality Index",
     xaxis_title="Date",
-    margin=dict(l=30,r=20,t=60,b=20)
+    margin=dict(l=30,r=20,t=60,b=20),
+    plot_bgcolor="rgba(255, 255, 255, 0.5)",
+    paper_bgcolor="rgba(255, 255, 255, 0)"
 )
 
 st.plotly_chart(fig, use_container_width=True)
@@ -351,16 +382,16 @@ st.divider()
 # ---------------------------------------------------
 # HOTSPOTS
 # ---------------------------------------------------
-st.subheader("🔥 Pollution Hotspots")
+st.markdown("<h3 style='color:#FF1493;'>🌶️ Pollution Hotspots</h3>", unsafe_allow_html=True)
 
-threshold = st.slider("AQI Warning Threshold", 50, 300, 150, step=10)
+threshold = st.slider("Drag to set AQI Warning Threshold ✨", 50, 300, 150, step=10)
 
 hotspots = df[df["AQI"] > threshold]
 
 if hotspots.empty:
-    st.success(f"🎉 No hotspot detected above {threshold} AQI.")
+    st.success(f"🎉 Yay! No hotspots detected above {threshold} AQI. The air is lovely! 🪷")
 else:
-    st.warning(f"{len(hotspots)} hotspot(s) detected with AQI above {threshold}.")
+    st.warning(f"Oh no! 🤧 {len(hotspots)} hotspot(s) detected with AQI above {threshold}.")
     
     st.dataframe(
         hotspots[["City", "AQI", "Status", "Day+1", "Day+2", "Day+3"]],

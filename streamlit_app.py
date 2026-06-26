@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
 # Must be the first Streamlit command
-st.set_page_config(page_title="VayuShashtra Ai 🪷", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="AIRVERSE AI 🪷", layout="wide", initial_sidebar_state="collapsed")
 
 # ── Custom CSS (Bright, Cute, Indian Theme) ──────────────────────────────────
 st.markdown("""
@@ -86,42 +86,6 @@ div.stButton > button:hover{
 }
 </style>
 """, unsafe_allow_html=True)
-body{
-overflow-x:hidden;
-}
-
-body::before{
-content:"";
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-
-background-image:
-radial-gradient(#00ffff 1px, transparent 1px),
-radial-gradient(#ff00ff 1px, transparent 1px);
-
-background-size:120, 120;
-
-animation:moveStars 40 linear infinite;
-
-opacity:.18;
-
-z-index:-2;
-
-
-@keyframes moveStars{
-
-0%{
-transform:translateY(0);
-}
-
-100%{
-transform:translateY(-250);
-}
-
-}
 
 
 # ── Configuration & Functions ────────────────────────────────────────────────

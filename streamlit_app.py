@@ -152,9 +152,9 @@ aqi_color()
 
 aqi_label()
 
-load_all_city_data()   ← Missing
+load_all_city_data() 
 
-build_folium_map()     ← Missing
+build_folium_map() 
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  MAIN APP

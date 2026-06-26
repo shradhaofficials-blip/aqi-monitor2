@@ -303,10 +303,10 @@ if not st.session_state.started:
     <div style='text-align:center;padding-top:80px;'>
     <h1 class='main-title'>VAYUSHASHTRA AI 🪷</h1>
     <h3 style='color:#00F5FF; text-shadow: 0 0 10px #00F5FF;'>
-    India's Next-Gen Cybernetic Air Grid 🇮🇳
+    Data in clouds, Clarity on grounds
     </h3>
     <p style='color:#FF9933; font-size:22px; font-weight:bold; text-shadow: 0 0 5px #FF9933;'>
-    Sys.Track(AQI) • Neural.Predict() • Alert(Smoke Grid)
+    Decoded by ESCAPE
     </p>
     </div>
     """, unsafe_allow_html=True)

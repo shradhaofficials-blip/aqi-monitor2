@@ -109,7 +109,7 @@ animation:moveStars 40 linear infinite;
 opacity:.18;
 
 z-index:-2;
-}
+
 
 @keyframes moveStars{
 

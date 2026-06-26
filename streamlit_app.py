@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
 # Must be the first Streamlit command
-st.set_page_config(page_title="NEO-AIRVERSE 🪷", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="VayuShashtra AI 🪷", layout="wide", initial_sidebar_state="collapsed")
 
 # ── Custom CSS (Cyberpunk + Touch of India) ──────────────────────────────────
 st.markdown("""
@@ -219,7 +219,7 @@ if "started" not in st.session_state:
 if not st.session_state.started:
     st.markdown("""
     <div style='text-align:center;padding-top:80px;'>
-    <h1 class='main-title'>NEO-AIRVERSE 2077 🪷</h1>
+    <h1 class='main-title'>VAYUSHASHTRA AI 🪷</h1>
     <h3 style='color:#00F5FF; text-shadow: 0 0 10px #00F5FF;'>
     India's Next-Gen Cybernetic Air Grid 🇮🇳
     </h3>
@@ -233,7 +233,7 @@ if not st.session_state.started:
     c1, c2, c3 = st.columns([1,2,1])
 
     with c2:
-        if st.button("🛺 JACK IN TO AIRVERSE"):
+        if st.button("🛺 JACK IN TO VAYUSHASHTRA"):
             st.session_state.started = True
             st.rerun()
 
@@ -265,7 +265,7 @@ with c1:
 
 st.markdown("""
 <h1 class='main-title'>
-🪷 NEO-AIRVERSE 🪷
+🪷 VAYUSHASHTRA AI 🪷
 </h1>
 """, unsafe_allow_html=True)
 
